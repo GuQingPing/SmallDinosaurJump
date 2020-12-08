@@ -1,6 +1,5 @@
 <template>
 	<div id="panel" @click="click($event)">
-		<UI title="提示" text="此游戏尚处于开发中,无法保证正常运行"></UI>
 		<div v-if="visible" class="ui">
 			<div class="title"><span></span>小恐龙跳跃</div>
 			<div class="btn start">开始游戏</div>
@@ -21,13 +20,12 @@
 <script>
 	import dinosaur from './dinosaur.vue'
 	import bg from './bg.vue'
-	import UI from './UI.vue'
 	export default {
 		name: "panel",
 		data() {
 			return {
 				visible: true,
-				version: "Betav0.0.1",
+				version: "BetaV0.1.0",
 			}
 		},
 		methods: {
@@ -40,7 +38,7 @@
 			},
 		},
 		components:{
-			dinosaur,bg,UI
+			dinosaur,bg
 		}
 	}
 </script>

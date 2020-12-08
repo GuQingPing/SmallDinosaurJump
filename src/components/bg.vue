@@ -1,6 +1,7 @@
 <template>
 	<div id="bg">
 		<div id="ground">
+			<cactus></cactus>
 			<div class="mountains">
 				<span v-for="item in mStyles" :style="item"></span>
 			</div>
@@ -8,20 +9,22 @@
 	</div>
 </template>
 <script>
+	import cactus from './cactus.vue'
 	export default {
 		name: 'bg',
+		components:{cactus},
 		created() {//初始化-生成山脉
 			let s = "";
 			let lastWidhth = 0;
 			for (var i = 0; i < 30; i++) {
+				let createRandom=this.createRandom;
 				let width = createRandom(5, 20);
 				let height = createRandom(50, 100);
 				let radius = createRandom(40, 50);
 				let radius2 = createRandom(40, 50);
-				let name="rush";
 				let delay ="";
-				if(i>10) delay="animation-delay:3.5s;";
-				if(i>20) delay="animation-delay:7s;";
+				if(i>10) delay="animation-delay:3s;";
+				if(i>20) delay="animation-delay:6.5s;";
 				s += `width:${width}%;height:${height}%;border-radius:${radius}% ${radius2}% 0 0;left:${lastWidhth}%;${delay}`;
 				this.mStyles.push(s);
 				lastWidhth += width - 1;
@@ -33,11 +36,12 @@
 				mStyles: new Array(),
 			}
 		},
-	}
-	//生成随机数
-	function createRandom(start, end) {
-		let abs = Math.abs(start - end);
-		return Math.round(start + Math.round(Math.random() * abs));
+		methods:{
+			createRandom(start, end) {//生成随机数
+				let abs = Math.abs(start - end);
+				return Math.round(start + Math.round(Math.random() * abs));
+			}
+		}
 	}
 </script>
 <style lang="less" scoped>
@@ -68,11 +72,10 @@
 		top: 100%;
 		left: 0;
 		background: linear-gradient(to bottom, #3a536b, #151e27);
-		z-index: -1;
+		z-index: 0;
 	}
 
-	.mountains,
-	.catus {
+	.mountains{
 		position: absolute;
 		top: -30vh;
 		left: 0;
@@ -83,18 +86,17 @@
 
 	.mountains span {
 		position: absolute;
-		bottom: 0;
-		left: 0;
+		bottom: 0;left: 0;
 		display: inline-block;
 		background: rgb(56, 80, 103);
-		animation: rush 10s infinite linear both;
+		animation: bgMove 10s infinite linear both;
 	}
 
 	@keyframes scaleHeight {
 		0% {transform: scale(1, 0);}
 		100% {transform: scale(1, 1);}
 	}
-	@keyframes rush{
+	@keyframes bgMove{
 		0% {transform: translate(100vw,0);}
 		100% {transform: translate(-200vw,0);}
 	}
