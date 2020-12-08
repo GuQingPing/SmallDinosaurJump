@@ -1,0 +1,172 @@
+<template>
+	<div id="dinosaur">
+		<audio id="jump" src="../assets/sound/jump.mp3"></audio>
+	</div>
+</template>
+
+<script>
+	export default {
+		name: 'dinosaur',
+		created() {
+			document.addEventListener('keydown', this.keyDown)
+			document.addEventListener('keyup', this.keyUp)
+			this.checker=setInterval(this.check,10);
+		},
+		data() {
+			return {
+				width: 5, //宽度
+				height: 5, //高度
+				x: 0,
+				y: 0, //坐标
+				lagTime: 0.2, //跳跃滞空时间
+				jumping: false, //跳跃中
+				w: window.innerWidth,
+				h: window.innerHeight,
+				move_left:false,
+				move_right:false,
+				checker:null,
+			}
+		},
+		methods: {
+			keyDown(e) { //监听键盘
+				if (e.code == "KeyW" | e.code == "ArrowUp" | e.code == "Space" && !this.jumping) this.jump();
+				if (e.code == "KeyS" | e.code == "ArrowDown") this.fall();
+				if (e.code == "KeyA" | e.code == "ArrowLeft") this.move_left=true;
+				if (e.code == "KeyD" | e.code == "ArrowRight") this.move_right=true;
+				// console.log(e.code);
+			},
+			keyUp(e) {
+				if (e.code == "KeyA" | e.code == "ArrowLeft") this.move_left=false;
+				if (e.code == "KeyD" | e.code == "ArrowRight") this.move_right=false;
+			},
+			check(){
+				if(this.move_left) this.move(-1);
+				if(this.move_right) this.move(1);
+			},
+			//跳跃
+			jump() {
+				let h = this.h;
+				let jumpHeight = 17 * h * 0.01; //跳跃高度
+				let ele = document.getElementById("dinosaur");
+				this.jumping = true;
+				ele.classList.add("jumping");
+				let jump = document.getElementById("jump");
+				// let muted = document.getElementsByClassName("sound")[0].classList.contains("clicked");
+				let muted = false;
+				jump.volume = muted ? 0 : 1;
+				jump.currentTime = 0;
+				jump.play();
+				let ground = h * .4;
+				let up = setInterval(() => {
+					ele.style.bottom = ground + this.y + "px";
+					ele.setAttribute("y", this.y);
+					this.y += 2;
+					if (this.y > jumpHeight) {
+						clearInterval(up);
+						setTimeout(this.fall, 100);
+					}
+				}, 5);
+			},
+			//降落
+			fall() {
+				let h=this.h;
+				let ground = h * .4;
+				let ele = document.getElementById("dinosaur");
+				let down = setInterval(() => {
+					if (this.y > 0) {
+						this.y -= 2;
+					if (this.jumping)
+						this.y -= 2;
+						ele.style.bottom = ground + this.y + "px";
+						ele.setAttribute("y", this.y);
+						return;
+					}
+					clearInterval(down);
+					this.jumping = false;
+					ele.classList.remove("jumping");
+				}, 15);
+			},
+			move(num) {
+				let ele = document.getElementById("dinosaur");
+				let w=this.w;
+				let speed=2*0.001*w;
+				let nowX=ele.style.left.replace("px",'');
+				if(nowX<1&&num<0) return;
+				if(nowX>(w-w*0.06)&&num>0) return;
+				if(num>0) ele.style.left=(w*0.1)+(this.x+=speed)+"px";
+				if(num<0) ele.style.left=(w*0.1)+(this.x-=speed)+"px";
+			},
+		},
+		destroyed() {
+			document.removeEventListener("keydown");
+			document.removeEventListener("keyup");
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	#dinosaur {
+		position: fixed;
+		bottom: 40%;
+		left: 10%;
+		width: 10%;height: 10%;
+		background-image: url(../assets/img/dinosaur.png);
+		background-repeat: no-repeat;
+		background-size: contain;
+		filter: brightness(180%);
+		animation: scaleWidth 1s .2s both, walk .8s infinite;
+		&.jumping {
+			animation: scaleWidth 1s .2s both;
+		}
+	}
+
+	@keyframes walk {
+		@n: 1.02; //缩放比例
+
+		0% {
+			background-image: url(../assets/img/d1.png)
+		}
+
+		25% {
+			background-image: url(../assets/img/d1.png)
+		}
+
+		25.1% {
+			background-image: url(../assets/img/d2.png);
+			transform: scale(1, @n)
+		}
+
+		50% {
+			background-image: url(../assets/img/d2.png);
+			transform: scale(1, @n)
+		}
+
+		50.1% {
+			background-image: url(../assets/img/d3.png);
+			transform: scale(1, @n)
+		}
+
+		75% {
+			background-image: url(../assets/img/d3.png);
+			transform: scale(1, @n)
+		}
+
+		75.1% {
+			background-image: url(../assets/img/d4.png)
+		}
+
+		100% {
+			background-image: url(../assets/img/d4.png)
+		}
+	}
+
+	@keyframes scaleWidth {
+		0% {
+			transform: scale(0, 1);
+		}
+
+		100% {
+			transform: scale(1, 1);
+		}
+	}
+</style>
