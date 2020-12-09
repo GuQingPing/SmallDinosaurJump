@@ -1,6 +1,5 @@
 <template>
 	<div id="dinosaur">
-		<audio id="jump" src="../assets/sound/jump.mp3"></audio>
 	</div>
 </template>
 
@@ -25,6 +24,8 @@
 				move_left: false,
 				move_right: false,
 				checker: null,
+				ms:0,
+				s:0,
 			}
 		},
 		computed:{
@@ -50,22 +51,50 @@
 				let cactus=document.getElementsByClassName("cactus")[0].getElementsByTagName("span");
 				for (var i = 0; i < cactus.length; i++) {
 					let ele=cactus[i];
-					let amend=0.4;
-					if(ele.classList.contains("c4")) amend=0.45;
+					let amend=0.45;//修正系数
+					if(ele.classList.contains("c4")) amend=0.5;
 					let eLeft=ele.offsetLeft+(ele.clientWidth*amend);
-					let eRight=eLeft+ele.clientWidth-(ele.clientWidth*amend);
-					let eTop=ele.clientHeight-(ele.clientHeight/10);
+					let eRight=eLeft+ele.clientWidth-(ele.clientWidth*amend*2);
+					let eTop=ele.clientHeight*0.7;
 					let d=document.getElementById("dinosaur");
-					let dLeft=d.offsetLeft;
-					let dRight=dLeft+(this.w*this.width*0.01);
-					let dTop=d.offsetTop;
-					if(dRight>=eLeft&&this.y<=eTop&&dRight<=eRight){
+					let dWidth=(this.w*this.width*0.01);
+					let dLeft=d.offsetLeft+(dWidth/5);
+					let dRight=dLeft+dWidth-(dWidth/5*2);
+					if(dRight>=eLeft&&this.y<=eTop&&dLeft<=eRight){
+						let score=document.getElementsByClassName("score")[0].innerHTML;
+						let heighest=localStorage.getItem("score");
+						if(score>heighest) localStorage.setItem("score",score)
 						alert("被扎到了，完蛋...");
 						location.reload();
 					}
 				}
 				if (this.move_left) this.move(-1);
 				if (this.move_right) this.move(1);
+				this.ms+=10;
+				if(this.ms>=1000){
+					this.ms=0;
+					this.flushTime();
+				}
+				let muted = document.getElementsByClassName("sound")[0].classList.contains("clicked");
+				let arr=document.getElementsByClassName("sound")[0].getElementsByTagName("audio");
+				for (var i = 0; i < arr.length; i++) {
+					if(muted) arr[i].volume=0;
+					else arr[i].volume=1;
+				}
+			},
+			//计时
+			flushTime(){
+				let aliveTime=document.getElementsByClassName("aliveTime")[0];
+				let score=document.getElementsByClassName("score")[0];
+				let seconds=this.s++;
+				let mintues=parseInt(seconds/60);
+				let hours=parseInt(mintues/60);
+				let days=parseInt(hours/24);
+				if(mintues>=1) seconds-=mintues*60;
+				if(hours>=1) mintues-=hours*60;
+				if(days>=1) hours-=days*24;
+				aliveTime.innerHTML=days+":"+hours+":"+mintues+":"+seconds;
+				score.innerHTML=this.s*15*1;
 			},
 			//跳跃
 			jump() {
@@ -75,9 +104,6 @@
 				this.jumping = true;
 				ele.classList.add("jumping");
 				let jump = document.getElementById("jump");
-				// let muted = document.getElementsByClassName("sound")[0].classList.contains("clicked");
-				let muted = false;
-				jump.volume = muted ? 0 : 1;
 				jump.currentTime = 0;
 				jump.play();
 				let ground = h * .4;
@@ -167,51 +193,18 @@
 
 	@keyframes walk {
 		@n: 1.02; //缩放比例
-
-		0% {
-			background-image: url(../assets/img/d1.png)
-		}
-
-		25% {
-			background-image: url(../assets/img/d1.png)
-		}
-
-		25.1% {
-			background-image: url(../assets/img/d2.png);
-			transform: scale(1, @n)
-		}
-
-		50% {
-			background-image: url(../assets/img/d2.png);
-			transform: scale(1, @n)
-		}
-
-		50.1% {
-			background-image: url(../assets/img/d3.png);
-			transform: scale(1, @n)
-		}
-
-		75% {
-			background-image: url(../assets/img/d3.png);
-			transform: scale(1, @n)
-		}
-
-		75.1% {
-			background-image: url(../assets/img/d4.png)
-		}
-
-		100% {
-			background-image: url(../assets/img/d4.png)
-		}
+		0% {background-image: url(../assets/img/d1.png)}
+		25% {background-image: url(../assets/img/d1.png)}
+		25.1% {background-image: url(../assets/img/d2.png);transform: scale(1, @n)}
+		50% {background-image: url(../assets/img/d2.png);transform: scale(1, @n)}
+		50.1% {background-image: url(../assets/img/d3.png);transform: scale(1, @n)}
+		75% {background-image: url(../assets/img/d3.png);transform: scale(1, @n)}
+		75.1% {background-image: url(../assets/img/d4.png)}
+		100% {background-image: url(../assets/img/d4.png)}
 	}
 
 	@keyframes scaleWidth {
-		0% {
-			transform: scale(0, 1);
-		}
-
-		100% {
-			transform: scale(1, 1);
-		}
+		0% {transform: scale(0, 1);}
+		100% {transform: scale(1, 1);}
 	}
 </style>
