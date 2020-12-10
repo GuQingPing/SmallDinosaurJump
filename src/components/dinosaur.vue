@@ -1,6 +1,5 @@
 <template>
-	<div id="dinosaur">
-	</div>
+	<div id="dinosaur" :style="style" :class="cName"></div>
 </template>
 
 <script>
@@ -9,21 +8,21 @@
 		created() {
 			document.addEventListener('keydown', this.keyDown)
 			document.addEventListener('keyup', this.keyUp)
-			window.addEventListener("resize", this.resize);
 			this.checker = setInterval(this.check, 10);
 		},
 		data() {
 			return {
-				width: 5, //宽度
-				height: this.width,
+				cName:"",//类(切换行走与跳跃样式)
+				style:"",//调整显示坐标
+				size: 5, //宽高
 				x: 0,y: 0, //坐标
-				lagTime: 0.2, //跳跃滞空时间
-				jumping: false, //跳跃中
-				w: window.innerWidth,
-				h: window.innerHeight,
+				lagTime: 0.1, //跳跃滞空时间
+				jumping: false, //跳跃状态
+				canJump: false, //可否跳跃(是否接触过地面)
 				move_left: false,
 				move_right: false,
 				checker: null,
+				failed:false,
 				ms:0,
 				s:0,
 			}
@@ -31,25 +30,46 @@
 		computed:{
 			jumpHeight:{
 				get(){
-					return 20 * this.h * 0.01;
+					return 20 * window.innerHeight * 0.01;
 				}
 			}
 		},
 		methods: {
 			keyDown(e) { //监听键盘
-				if (e.code == "KeyW" | e.code == "ArrowUp" | e.code == "Space" && !this.jumping) this.jump();
-				if (e.code == "KeyS" | e.code == "ArrowDown") this.fall();
+				if (e.code == "KeyW" | e.code == "ArrowUp" | e.code == "Space" &&this.canJump){
+					this.jumping=true;
+					this.canJump=false;
+					if(this.panel().muted) return;
+					let jump = document.getElementById("jump");
+					jump.play();
+				}
 				if (e.code == "KeyA" | e.code == "ArrowLeft") this.move_left = true;
 				if (e.code == "KeyD" | e.code == "ArrowRight") this.move_right = true;
 			},
 			keyUp(e) {
+				if (e.code == "KeyW" | e.code == "ArrowUp" | e.code == "Space") this.jumping=false;
 				if (e.code == "KeyA" | e.code == "ArrowLeft") this.move_left = false;
 				if (e.code == "KeyD" | e.code == "ArrowRight") this.move_right = false;
 			},
 			//检查
 			check() {
+				//操作
+				if (this.move_left) this.move(-1);
+				if (this.move_right) this.move(1);
+				if (this.jumping) this.jump();
+				if (!this.jumping&&!this.canJump) this.fall();
+				this.setStyle();
+				//计秒
+				this.ms+=10;
+				if(this.ms>=1000){
+					this.ms=0;
+					if(!this.failed) this.flushTime();
+				}
+				if(this.panel().model!="run"||this.failed) return;
+				//检查障碍物
 				let cactus=document.getElementsByClassName("cactus")[0].getElementsByTagName("span");
 				for (var i = 0; i < cactus.length; i++) {
+					let w=window.innerHeight;
 					let ele=cactus[i];
 					let amend=0.45;//修正系数
 					if(ele.classList.contains("c4")) amend=0.5;
@@ -57,109 +77,90 @@
 					let eRight=eLeft+ele.clientWidth-(ele.clientWidth*amend*2);
 					let eTop=ele.clientHeight*0.7;
 					let d=document.getElementById("dinosaur");
-					let dWidth=(this.w*this.width*0.01);
+					let dWidth=(w*this.size*0.01);
 					let dLeft=d.offsetLeft+(dWidth/5);
 					let dRight=dLeft+dWidth-(dWidth/5*2);
+					//销毁
+					
+					//碰撞
 					if(dRight>=eLeft&&this.y<=eTop&&dLeft<=eRight){
 						let score=document.getElementsByClassName("score")[0].innerHTML;
 						let heighest=localStorage.getItem("score");
-						if(score>heighest) localStorage.setItem("score",score)
-						alert("被扎到了，完蛋...");
-						location.reload();
+						if(score>heighest) localStorage.setItem("score",score);
+						this.failed=true;
+						this.panel().failedPanel=true;
 					}
 				}
-				if (this.move_left) this.move(-1);
-				if (this.move_right) this.move(1);
-				this.ms+=10;
-				if(this.ms>=1000){
-					this.ms=0;
-					this.flushTime();
-				}
-				let muted = document.getElementsByClassName("sound")[0].classList.contains("clicked");
-				let arr=document.getElementsByClassName("sound")[0].getElementsByTagName("audio");
-				for (var i = 0; i < arr.length; i++) {
-					if(muted) arr[i].volume=0;
-					else arr[i].volume=1;
-				}
 			},
-			//计时
+			//计时与得分
 			flushTime(){
-				let aliveTime=document.getElementsByClassName("aliveTime")[0];
-				let score=document.getElementsByClassName("score")[0];
-				let seconds=this.s++;
+				let seconds=++this.s;
 				let mintues=parseInt(seconds/60);
 				let hours=parseInt(mintues/60);
 				let days=parseInt(hours/24);
 				if(mintues>=1) seconds-=mintues*60;
 				if(hours>=1) mintues-=hours*60;
 				if(days>=1) hours-=days*24;
-				aliveTime.innerHTML=days+":"+hours+":"+mintues+":"+seconds;
-				score.innerHTML=this.s*15*1;
+				this.panel().aliveTime=days+":"+hours+":"+mintues+":"+seconds;
+				let timeScoreAmend=1+parseInt(this.s/10);
+				let difficultyScoreAmend=1;
+				let difficulty=this.panel().difficulty;
+				if(difficulty=="easy") difficultyScoreAmend=0.5;
+				if(difficulty=="hard") difficultyScoreAmend=2;
+				if(difficulty=="hell") difficultyScoreAmend=4;
+				this.panel().score=this.s*10*timeScoreAmend*difficultyScoreAmend;
 			},
 			//跳跃
 			jump() {
-				let h = this.h;
-				let jumpHeight = this.jumpHeight; //跳跃高度
-				let ele = document.getElementById("dinosaur");
-				this.jumping = true;
-				ele.classList.add("jumping");
-				let jump = document.getElementById("jump");
-				jump.currentTime = 0;
-				jump.play();
-				let ground = h * .4;
-				let up = setInterval(() => {
-					ele.style.bottom = ground + this.y + "px";
-					ele.setAttribute("y", this.y);
-					this.y += 2;
-					if (this.y > jumpHeight) {
-						clearInterval(up);
-						setTimeout(this.fall, 100);
-					}
-				}, 5);
+				if (this.y > this.jumpHeight) {
+					this.jumping=false;
+					return;
+				}
+				let difficulty=this.panel().difficulty;
+				let jumpSpeed=5;
+				if(difficulty=="easy") jumpSpeed=4;
+				if(difficulty=="hard") jumpSpeed=6;
+				if(difficulty=="hell") jumpSpeed=7;
+				this.y += jumpSpeed;
+				this.cName="jumping";
 			},
-			//降落
+			//下坠
 			fall() {
-				let h = this.h;
-				let ground = h * .4;
-				let ele = document.getElementById("dinosaur");
-				let down = setInterval(() => {
-					if (this.y > 0) {
-						this.y -= 2;
-						if (this.jumping)
-							this.y -= 2;
-						ele.style.bottom = ground + this.y + "px";
-						ele.setAttribute("y", this.y);
-						return;
-					}
-					clearInterval(down);
-					this.jumping = false;
-					ele.classList.remove("jumping");
-				}, 15);
+				if (this.y<0) {
+					this.cName="";
+					this.canJump=true;
+					return;
+				}
+				let difficulty=this.panel().difficulty;
+				let fallSpeed=6;
+				if(difficulty=="easy") fallSpeed=5;
+				if(difficulty=="hard") fallSpeed=7;
+				if(difficulty=="hell") fallSpeed=8;
+				this.y -= fallSpeed;
 			},
 			//移动
 			move(num) {
-				let ele = document.getElementById("dinosaur");
-				let w = this.w;
+				let w = window.innerWidth;
 				let speed = 2 * 0.001 * w;
-				let nowX = ele.style.left.replace("px", '');
-				if (nowX < 1 && num < 0) return;
-				if (nowX > (w - w * 0.06) && num > 0) return;
-				if (num > 0) ele.style.left = (w * 0.1) + (this.x += speed) + "px";
-				if (num < 0) ele.style.left = (w * 0.1) + (this.x -= speed) + "px";
+				let nowX = w*0.1+this.x;
+				if (num > 0 &&nowX < (w-w*0.06)) this.x += speed;
+				if (num < 0 &&nowX > 10) this.x -= speed;
 			},
-			//重载
-			resize() {
-				let w = this.w;
-				let h = this.h;
-				let width = this.width;
-				let ele = document.getElementById("dinosaur");
-				ele.style.width = w * width * 0.01 + "px";
-				ele.style.height = w * width * 0.01 + "px";
-			}
+			//设置显示坐标
+			setStyle(){
+				let w = window.innerWidth;
+				let h = window.innerHeight;
+				let ground = h * .4;
+				this.style=`left:${w*0.1+this.x}px;bottom:${ground+this.y}px`;
+			},
+			panel(){//返回面板属性
+				return this.$parent.$data;
+			},
 		},
 		destroyed() {
-			document.removeEventListener("keydown");
-			document.removeEventListener("keyup");
+			document.removeEventListener("keydown",this.keyDown);
+			document.removeEventListener("keyup",this.keyUp);
+			clearInterval(this.checker);
 		}
 	}
 </script>
@@ -175,9 +176,9 @@
 		background-repeat: no-repeat;
 		background-size: contain;
 		filter: invert(100%);
-		animation: scaleWidth 1s .2s both, walk .8s infinite;
+		animation:fade reverse 1s both,walk .8s infinite;
 		&.jumping {
-			animation: scaleWidth 1s .2s both;
+			animation:fade 1s;
 		}
 		&::before {
 			content: '';
@@ -190,7 +191,6 @@
 			right: 38%;
 		}
 	}
-
 	@keyframes walk {
 		@n: 1.02; //缩放比例
 		0% {background-image: url(../assets/img/d1.png)}
@@ -201,10 +201,5 @@
 		75% {background-image: url(../assets/img/d3.png);transform: scale(1, @n)}
 		75.1% {background-image: url(../assets/img/d4.png)}
 		100% {background-image: url(../assets/img/d4.png)}
-	}
-
-	@keyframes scaleWidth {
-		0% {transform: scale(0, 1);}
-		100% {transform: scale(1, 1);}
 	}
 </style>

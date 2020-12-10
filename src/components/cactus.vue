@@ -9,34 +9,51 @@
 		name:"cactus",
 		data() {
 			return {
-				cactus:new Object(),
+				cactus:[],
+				cId:1,
+				creator:null,
+				lag:6,
 			}
 		},
-		created() {this.init();},
+		created() {
+			this.createCactus();
+			this.creator=setTimeout(this.add,this.lag*1000);
+		},
 		methods: {
-			init(){
-				for (let i = 0; i < 3; i++) {
-					this.cactus.[i]=this.createCactus(i*2.5);
-				}
-			},
-			createCactus(num){
+			createCactus(){
+				let difficulty=this.$parent.$parent.difficulty.toLowerCase();
 				let createRandom=this.createRandom;
 				let style = createRandom(1, 5);
-				let height = createRandom(40, 60);
+				let height = createRandom(30, 60);
 				let width = height/5;
-				let s1 ="height:"+height+"%;width:"+width+"%;animation-delay:"+num+"s;";
-				let s2 ="c"+style;
-				return {style:s1,class:s2,}
+				let s1 =`id:${this.cId++};height:${height}%;width:${width}%;`;
+				let s2 =`c${style}`;
+				this.cactus.push({style:s1,class:s2});
+			},
+			add(){
+				let difficulty=this.$parent.$parent.difficulty.toLowerCase();
+				let cTotal=7;
+				if(difficulty=="easy") cTotal=5;
+				if(difficulty=="hard") cTotal=9;
+				if(difficulty=="hell") cTotal=12;
+				if(this.cactus.length>=cTotal) this.cactus.shift();
+				this.createCactus();
+				let lagAmend=1;
+				if(difficulty=="easy") lagAmend=1.5;
+				if(difficulty=="hard") lagAmend=0.5;
+				if(difficulty=="hell") lagAmend=0.2;
+				this.lag=this.createRandom(lagAmend*4,lagAmend*8);
+				setTimeout(this.add,this.lag*1000);
 			},
 			createRandom(start, end) {//生成随机数
 				let abs = Math.abs(start - end);
 				return Math.round(start + Math.round(Math.random() * abs));
-			}
+			},
 		}
 	}
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 	.cactus {
 		position: absolute;
 		top: -30vh;
@@ -45,7 +62,7 @@
 		height: 30vh;
 		z-index: -1;
 	}
-	.cactus span {
+	.cactus span{
 		display: block;
 		position: absolute;
 		bottom: -5%;
@@ -64,14 +81,8 @@
 		&.c4 {background-image: url(../assets/cactus/c4.svg)}
 		&.c5 {background-image: url(../assets/cactus/c5.svg)}
 	}
-
 	@keyframes move {
-		0% {
-			left: 100%;
-		}
-
-		100% {
-			left: -10%;
-		}
+		0% {left: 100%}
+		100% {left: -10%}
 	}
 </style>
