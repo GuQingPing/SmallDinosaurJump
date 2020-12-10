@@ -1,6 +1,6 @@
 <template>
 	<div id="panel" @click="click">
-		<div v-if='model!="run"' class="debug">{{model}}</div>
+		<div v-if='model!="run"' class="model">{{model}}</div>
 		<div v-if="visible" class="ui">
 			<div class="title"><span></span>小恐龙跳跃</div>
 			<div class="btn start">开始游戏</div>
@@ -12,7 +12,7 @@
 				<p>{{difficulty}}</p>
 				<p>{{version}}</p>
 			</div>
-			<div class="record">{{record}}</div>
+			<div class="record">本地记录:{{record}}</div>
 		</div>
 		<div v-show="!visible" class="game">
 			<div class="btnBox">
@@ -66,16 +66,18 @@
 <script>
 	import dinosaur from './dinosaur.vue'
 	import bg from './bg.vue'
+	import c from './cactus.vue'
 	export default {
 		name: "panel",
 		data() {
 			return {
-				version: "betaV0.4.0",
+				version: "betaV0.4.2",
 				visible: true,
 				aliveTime: "0:0:0:0",
 				score: 0,
+				record:localStorage.getItem("record") ?? 0,
 				inputVolume:80,
-				difficulty:"normal",
+				difficulty:"easy",
 				model:"run",
 				settingPanel:false,
 				failedPanel:false,
@@ -101,11 +103,6 @@
 			},
 		},
 		computed: {
-			record: {
-				get() {
-					return "最高记录:" + localStorage.getItem("score") ?? 0;
-				}
-			},
 			volume: {
 				get() {
 					return this.inputVolume/100;
@@ -145,7 +142,7 @@
 				}
 				if (c.contains("about")) {//关于
 					this.infoPanelText=`
-					<div style="padding-left:2.9em;padding-top:2vw;line-height:1.5em;">
+					<div style="line-height:1.5em;">
 					<p>作者: 古清平</p>
 					<p style="text-transform:capitalize">当前难度: ${this.difficulty}</p>
 					<p style="text-transform:capitalize">当前模式: ${this.model}</p>
@@ -157,7 +154,9 @@
 				}
 			},
 			keyDown(e) {
-				if (e.code == "Space") this.visible = false;
+				if (e.code == "Space" && this.visible){
+					this.visible = false;
+				}
 				if (e.code == "Slash"){
 					this.model = this.model=="run"?"debug":"run";	
 				}
@@ -202,7 +201,7 @@
 		width: 100%;
 		height: 100%;
 		min-width: @min;
-		.debug {
+		.model {
 			position: relative;
 			color: red;
 			font-size: 150%;
@@ -211,7 +210,7 @@
 			right: 2%;
 			z-index: 2;
 		}
-		.version{text-transform:capitalize;}
+		.version,.model{text-transform:capitalize;}
 		.ui {
 			min-width: @min;
 			background-size: contain;
@@ -248,11 +247,9 @@
 				position: absolute;
 				bottom: 2%;
 				font-size: 150%;
-
 				&.version {
 					left: 2%;
 				}
-
 				&.record {
 					right: 2%;
 				}
@@ -323,7 +320,7 @@
 		.allPanel{
 			min-width: 740px;
 			position: fixed;
-			font-size: 2rem;
+			font-size: 1.7rem;
 			position: absolute;
 			@width:50%;width:@width;left: calc(100% - @width * 1.5);
 			top: 22%;

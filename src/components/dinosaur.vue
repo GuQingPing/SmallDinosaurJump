@@ -39,7 +39,7 @@
 				if (e.code == "KeyW" | e.code == "ArrowUp" | e.code == "Space" &&this.canJump){
 					this.jumping=true;
 					this.canJump=false;
-					if(this.panel().muted) return;
+					if(this.$parent.muted) return;
 					let jump = document.getElementById("jump");
 					jump.play();
 				}
@@ -65,7 +65,7 @@
 					this.ms=0;
 					if(!this.failed) this.flushTime();
 				}
-				if(this.panel().model!="run"||this.failed) return;
+				if(this.$parent.model!="run"||this.failed) return;
 				//检查障碍物
 				let cactus=document.getElementsByClassName("cactus")[0].getElementsByTagName("span");
 				for (var i = 0; i < cactus.length; i++) {
@@ -88,7 +88,9 @@
 						let heighest=localStorage.getItem("score");
 						if(score>heighest) localStorage.setItem("score",score);
 						this.failed=true;
-						this.panel().failedPanel=true;
+						this.$parent.failedPanel=true;
+						this.$parent.record=this.$parent.score;
+						localStorage.setItem("record",this.$parent.score);
 					}
 				}
 			},
@@ -101,14 +103,14 @@
 				if(mintues>=1) seconds-=mintues*60;
 				if(hours>=1) mintues-=hours*60;
 				if(days>=1) hours-=days*24;
-				this.panel().aliveTime=days+":"+hours+":"+mintues+":"+seconds;
+				this.$parent.aliveTime=days+":"+hours+":"+mintues+":"+seconds;
 				let timeScoreAmend=1+parseInt(this.s/10);
 				let difficultyScoreAmend=1;
-				let difficulty=this.panel().difficulty;
+				let difficulty=this.$parent.difficulty;
 				if(difficulty=="easy") difficultyScoreAmend=0.5;
 				if(difficulty=="hard") difficultyScoreAmend=2;
 				if(difficulty=="hell") difficultyScoreAmend=4;
-				this.panel().score=this.s*10*timeScoreAmend*difficultyScoreAmend;
+				this.$parent.score=this.s*10*timeScoreAmend*difficultyScoreAmend;
 			},
 			//跳跃
 			jump() {
@@ -116,7 +118,7 @@
 					this.jumping=false;
 					return;
 				}
-				let difficulty=this.panel().difficulty;
+				let difficulty=this.$parent.difficulty;
 				let jumpSpeed=5;
 				if(difficulty=="easy") jumpSpeed=4;
 				if(difficulty=="hard") jumpSpeed=6;
@@ -131,7 +133,7 @@
 					this.canJump=true;
 					return;
 				}
-				let difficulty=this.panel().difficulty;
+				let difficulty=this.$parent.difficulty;
 				let fallSpeed=6;
 				if(difficulty=="easy") fallSpeed=5;
 				if(difficulty=="hard") fallSpeed=7;
