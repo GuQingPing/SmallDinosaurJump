@@ -1,3 +1,4 @@
 module.exports = {
-  publicPath: ''
+  publicPath: '',
+  runtimeCompiler: true,//开启模板编译
 }
