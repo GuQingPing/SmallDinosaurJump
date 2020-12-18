@@ -16,7 +16,7 @@
 		</div>
 		<game :visible="visible" :aliveTime="aliveTime" :score="score" :difficulty="difficulty"></game>
 		<infoPanel :infoPanel="infoPanel" :infoPanelText="infoPanelText"></infoPanel>
-		<settingPanel :visible="visible" :settingPanel="settingPanel" :inputVolume="inputVolume" :difficulty="difficulty" :dcList="dcList"></settingPanel>
+		<settingPanel :visible="visible" :settingPanel="settingPanel" :dcList="dcList"></settingPanel>
 		<failedPanel :visible="visible" :failedPanel="failedPanel" :aliveTime="aliveTime" :score="score" :difficulty="difficulty"></failedPanel>
 	</div>
 </template>
@@ -31,9 +31,10 @@
 		components: {failedPanel,settingPanel,infoPanel,game},
 		data() {
 			return {
-				version: "betaV0.4.5",	//版本信息
+				version: "betaV0.4.6",	//版本信息
 				visible: true,			//显示开始面板/显示游戏
-				aliveTime: "0:0:0:0",	//存货时间
+				aliveTime: "0:0:0:0",	//存活时间
+				totalSeconds:0,
 				score: 0,				//分数
 				record:localStorage.getItem("record") ?? 0,//本地最高记录
 				inputVolume:80,			//音量
@@ -120,21 +121,20 @@
 				}
 			},
 			keyDown(e) {
-				if (e.code == "Space" && this.visible){
-					this.visible = false;
-				}
+				if (e.code == "Space" && this.visible) this.visible = false;//开始游戏
+				if (e.code == "Enter" && !this.visible && this.failedPanel) this.playAgain();//重来
 				if (e.code == "Slash"){
 					this.model = this.model=="run"?"debug":"run";	
 				}
 			},
-			hover(e){
+			hover(e){//按钮悬停音效
 				let c = e.target.classList;
 				if(c.contains("btn")){
 					document.getElementById("hover").currentTime=0;
 					document.getElementById("hover").play();
 				}
 			},
-			setVolume(){
+			setVolume(){//设置音量
 				let sound=document.getElementsByClassName("sound")[0]
 				let clicked=sound.classList.contains("clicked");
 				let audio=sound.getElementsByTagName("audio");
@@ -145,19 +145,19 @@
 				}
 				document.getElementById("falled").volume=this.volume/3;
 			},
-			playAgain(){
+			playAgain(){//重玩
 				this.failedPanel=false;
 				this.visible=true;
 				setTimeout(()=>{
 					this.visible=false;
 				},100)
 			},
-			getSetting(){
+			getSetting(){//获取设置
 				this.inputVolume=localStorage.getItem("volume")??this.inputVolume;
 				this.difficulty=localStorage.getItem("difficulty")??this.difficulty;
 				this.model=localStorage.getItem("model")??this.model;
 			},
-			untapped(){
+			untapped(){//未开发
 				this.infoPanelText=`未开发`;
 				this.infoPanel=true;
 			}

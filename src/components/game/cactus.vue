@@ -11,7 +11,7 @@
 			return{
 				cactus:[],//仙人掌组
 				index:1,//初始索引
-				total:3,//屏幕中能出现的仙人掌数量上限
+				total:1,//屏幕中能出现的仙人掌数量上限
 				x:100,y:0,//仙人掌坐标
 				c:"",s:"",//类与样式
 				height:0,//高度
@@ -29,10 +29,10 @@
 			//新增
 			add(){
 				let difficulty=this.$parent.$parent.difficulty;
-				if(difficulty=="normal") this.total=4;
-				if(difficulty=="hard") this.total=5;
-				if(difficulty=="hell") this.total=6;
-				if(this.cactus.length>this.total) return;
+				if(difficulty=="normal") this.total=2;
+				if(difficulty=="hard") this.total=2;
+				if(difficulty=="hell") this.total=4;
+				if(this.cactus.length>=this.total) return;
 				let style = this.createRandom(1, 4);
 				let height = this.createRandom(40, 60);
 				this.cactus.push({
@@ -43,7 +43,7 @@
 					s:`height:${height}%;width:${height/9}%;left:100%`,
 					x:100
 				});
-				setTimeout(this.add,this.createRandom(500,5000));
+				setTimeout(this.add,2600);
 			},
 			//检查
 			check(){
@@ -52,6 +52,12 @@
 				if(difficulty=="normal") moveSpeed=.23;
 				if(difficulty=="hard") moveSpeed=.26;
 				if(difficulty=="hell") moveSpeed=.3;
+				let timeAmend=.07;
+				if(difficulty=="normal") timeAmend=.04;
+				if(difficulty=="hard") timeAmend=.035;
+				if(difficulty=="hell") timeAmend=.02;
+				let s=this.$parent.$parent.totalSeconds;
+				moveSpeed+=parseInt(s/10)*timeAmend;
 				for (let i = 0; i < this.cactus.length; i++) {
 					let c=this.cactus[i];
 					this.x=c.x;

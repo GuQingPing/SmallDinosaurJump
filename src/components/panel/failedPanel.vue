@@ -3,6 +3,7 @@
 		<p>你碰到刺了!!!</p>
 		<p>存活时间: {{aliveTime}}</p>
 		<p>最终分数: {{score}}</p>
+		<p>历史最高分:{{record}}</p>
 		<p style="text-transform: capitalize;">难度: {{difficulty}}</p>
 		<div @click="back" class="btn back">返回主菜单</div>
 		<div @click="playAgain" class="btn again">重来</div>
@@ -18,6 +19,14 @@
 			aliveTime:{},
 			score:{},
 			difficulty:{},
+		},
+		data(){
+			return{
+				record:0,
+			}
+		},
+		updated() {//获取历史最高分
+			this.record=this.$parent.record;
 		},
 		methods:{
 			playAgain(){this.$parent.playAgain()},

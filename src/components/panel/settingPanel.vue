@@ -1,14 +1,14 @@
 <template>
 	<div v-if="settingPanel" class="allPanel settingPanel">
-		<p>音量<input type="range" @input="setVolume">{{inputVolume}}</p>
+		<p>音量<input type="range" v-model="localInputVolume" @input="setVolume">{{localInputVolume}}</p>
 		<p v-if="visible">难度
 			<label v-for="x in dcList" :for="x.id" class="btn">
 				{{x.text}}
-				<input  class="btn" type="radio" name="difficulty" :value="x.value" :id="x.id" @input="setDifficulty">
+				<input v-model="localDifficulty" class="btn" type="radio" name="difficulty" :value="x.value" :id="x.id" @input="setDifficulty">
 				<span></span>
 			</label>
 		</p>
-		<p v-if="!visible" style="text-transform:capitalize">当前难度: {{difficulty}}</p>
+		<p v-if="!visible" style="text-transform:capitalize">当前难度: {{localDifficulty}}</p>
 		<div class="btn back" v-if="!visible" @click="back">返回主界面</div>
 		<div @click="close" class=" btn close">关闭</div>
 	</div>
@@ -16,16 +16,32 @@
 
 <script>
 	export default {
+		data(){
+			return{
+				localDifficulty:'',
+				localInputVolume:0,
+			}
+		},
+		mounted() {
+			this.localDifficulty=this.$parent.difficulty;
+			this.localInputVolume=this.$parent.inputVolume;
+		},
 		props:{
 			visible:{},
 			settingPanel:{},
-			difficulty:{},
 			dcList:{},
-			inputVolume:{},
 		},
 		methods:{
-			setVolume(e){this.$parent.inputVolume=e.currentTarget.value;},
-			setDifficulty(e){this.$parent.difficulty=e.currentTarget.value;},
+			setVolume(e){
+				let nV=e.currentTarget.value;
+				this.localInputVolume=nV;
+				this.$parent.inputVolume=e.currentTarget.value;
+			},
+			setDifficulty(e){
+				let nV=e.currentTarget.value;
+				this.localDifficulty=nV;
+				this.$parent.difficulty=nV;
+			},
 			back(){this.$parent.visible=true;this.$parent.settingPanel=false},
 			close(){this.$parent.settingPanel=false},
 		}

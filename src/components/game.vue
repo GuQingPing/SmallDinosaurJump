@@ -17,8 +17,9 @@
 			<div class="aliveTime">{{aliveTime}}</div>
 			<div class="score">{{score}}</div>
 			<div class="version">
-				<p>难度:{{difficulty}}</p>
-				<p>WASD ↑↓←→ 空格</p>
+				<p>难度: {{difficulty}}</p>
+				<p>操作: WASD ↑↓←→ 空格</p>
+				<p>重玩: Enter 回车键</p>
 			</div>
 		</div>
 		<div v-if="!visible">
@@ -43,7 +44,7 @@
 			visible:{},
 			aliveTime:{},
 			score:{},
-			difficulty:{}
+			difficulty:{},
 		},
 	}
 </script>
