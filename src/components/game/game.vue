@@ -2,13 +2,13 @@
 	<div v-show="!visible" class="game">
 		<div class="btnBox">
 			<div class="btn sound">
-				<div>
-					<audio id="jump" src="../assets/sound/jump.mp3"></audio>
-					<audio v-if="!visible" @loadstart="setVolume" id="bgm" src="../assets/sound/bgm.mp3" autoplay loop></audio>
-					<audio id="click" src="../assets/sound/click.wav"></audio>
-					<audio id="hover" src="../assets/sound/hover.mp3"></audio>
-					<audio id="failed" src="../assets/sound/failed.mp3"></audio>
-					<audio id="falled" src="../assets/sound/falled.mp3"></audio>
+				<div ref="sound">
+					<audio v-if="!visible" class="music" @loadstart="setVolume" id="bgm" src="../../assets/sound/bgm.mp3" autoplay loop></audio>
+					<audio id="failed" class="music" src="../../assets/sound/failed.mp3"></audio>
+					<audio id="jump" class="sound" src="../../assets/sound/jump.mp3"></audio>
+					<audio id="click" class="sound" src="../../assets/sound/click.wav"></audio>
+					<audio id="hover" class="sound" src="../../assets/sound/hover.mp3"></audio>
+					<audio id="falled" class="sound" src="../../assets/sound/falled.mp3"></audio>
 				</div>
 			</div>
 			<div class="btn setting"></div>
@@ -31,9 +31,9 @@
 </template>
 
 <script>
-	import dinosaur from './game/dinosaur.vue'
-	import bg from './game/bg.vue'
-	import cactus from './game/cactus.vue'
+	import dinosaur from './dinosaur.vue'
+	import bg from './bg.vue'
+	import cactus from './cactus.vue'
 	export default {
 		components:{dinosaur,bg,cactus},
 		name:"game",
@@ -72,18 +72,18 @@
 			&.sound {
 				position: fixed;
 				left: 0;
-				background: url(../assets/icon/声音开.svg) no-repeat center;
+				background: url(../../assets/icon/声音开.svg) no-repeat center;
 				background-size: contain;
 	
 				&.clicked {
-					background: url(../assets/icon/声音关.svg) no-repeat center;
+					background: url(../../assets/icon/声音关.svg) no-repeat center;
 					background-size: contain;
 				}
 			}
 			&.setting {
 				position: fixed;
 				right: 0;
-				background: url(../assets/icon/设置.svg) no-repeat center;
+				background: url(../../assets/icon/设置.svg) no-repeat center;
 				background-size: contain;
 				&:hover {
 					animation: fade reverse 1s both, rotate 2s infinite linear;

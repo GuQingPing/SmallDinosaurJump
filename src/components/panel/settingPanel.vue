@@ -1,55 +1,56 @@
 <template>
-	<div v-if="settingPanel" class="allPanel settingPanel">
-		<p>音量<input type="range" v-model="localInputVolume" @input="setVolume">{{localInputVolume}}</p>
-		<p v-if="visible">难度
+	<panel type="0" :show="this.$parent.settingPanel" class="settingPanel" :close="close">
+		<p>主音量<input type="range" @input="setV('inputVolume',$event)" :value="this.$parent.inputVolume">{{this.$parent.inputVolume}}</p>
+		<p>音乐<no>啊</no><input type="range" @input="setV('inputMusic',$event)" :value="this.$parent.inputMusic">{{this.$parent.inputMusic}}</p>
+		<p>音效<no>啊</no><input type="range" @input="setV('inputSound',$event)" :value="this.$parent.inputSound">{{this.$parent.inputSound}}</p>
+		<p>点击提示音<div></div></p>
+		<p>经过提示音</p>
+		<p v-if="this.$parent.visible">难度
 			<label v-for="x in dcList" :for="x.id" class="btn">
 				{{x.text}}
-				<input v-model="localDifficulty" class="btn" type="radio" name="difficulty" :value="x.value" :id="x.id" @input="setDifficulty">
+				<input class="btn" type="radio" name="difficulty" :value="x.value" :id="x.id" @input="setV('difficulty',$event)" :checked="isChecked(x.value)">
 				<span></span>
 			</label>
 		</p>
-		<p v-if="!visible" style="text-transform:capitalize">当前难度: {{localDifficulty}}</p>
-		<div class="btn back" v-if="!visible" @click="back">返回主界面</div>
-		<div @click="close" class=" btn close">关闭</div>
-	</div>
+		<p v-if="!(this.$parent.visible)" style="text-transform:capitalize">当前难度: {{this.$parent.difficulty}}</p>
+		<div class="btnBox">
+			<div class="btn back" v-if="!(this.$parent.visible)" @click="back">返回主界面</div>
+			<div @click="close" class=" btn close">关闭</div>
+		</div>
+	</panel>
 </template>
 
 <script>
+	import no from '../others/no.vue';
+	import panel from './basicPanel.vue'
 	export default {
 		data(){
 			return{
-				localDifficulty:'',
-				localInputVolume:0,
+				dcList:[				//难度按钮列表
+					{id:"dc1",text:"简单",value:"easy"},
+					{id:"dc2",text:"普通",value:"normal"},
+					{id:"dc3",text:"困难",value:"hard"},
+					{id:"dc4",text:"炼狱",value:"hell"},
+				],
 			}
 		},
-		mounted() {
-			this.localDifficulty=this.$parent.difficulty;
-			this.localInputVolume=this.$parent.inputVolume;
-		},
-		props:{
-			visible:{},
-			settingPanel:{},
-			dcList:{},
-		},
 		methods:{
-			setVolume(e){
-				let nV=e.currentTarget.value;
-				this.localInputVolume=nV;
-				this.$parent.inputVolume=e.currentTarget.value;
-			},
-			setDifficulty(e){
-				let nV=e.currentTarget.value;
-				this.localDifficulty=nV;
-				this.$parent.difficulty=nV;
-			},
 			back(){this.$parent.visible=true;this.$parent.settingPanel=false},
-			close(){this.$parent.settingPanel=false},
+			setV(p,e){this.$parent.set(p,e.target.value)},
+			close(){this.$parent.set("settingPanel",false);},
+			isChecked(v){
+				return this.$parent.difficulty==v;
+			}
+		},
+		components:{
+			no,panel
 		}
 	}
 </script>
 
 <style lang="less" scoped="scoped">
 	.settingPanel{
+		.no{opacity: 0;}
 		p label.btn{
 			cursor: pointer;
 			font-size: 70%;
@@ -67,27 +68,21 @@
 			&:nth-child(3){--color:orange;}
 			&:nth-child(4){--color:red;}
 			&:nth-child(5){--color:#000;}
-			& input+span{
+			input+span{
 				position: absolute;
 				border-radius:inherit;
 				top: 0;bottom: 0;left: 0;right: 0;
 				filter: brightness(50%);
 				transition: .2s;
 			}
-			& input:checked+span{
+			input:checked+span{
 				@bx:3px;
 				box-shadow: @bx -@bx 0px var(--color),-@bx @bx 0px var(--color);
 			}
 		}
 		input[type="range"]{width: 75%;}
-		.back{
-			position: absolute;
-			bottom: 5%;left: 5%;
-			padding: .25em 5em;
-		}
-		.close{
-			left: 80%;
-		}
+		.back{padding: .25em 5em;}
+		.close{padding: .25em 2.5em;}
 	}
 	input[type="range"]{
 		appearance: none;

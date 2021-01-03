@@ -15,61 +15,47 @@
 			<div class="record">本地记录:{{record}}</div>
 		</div>
 		<game :visible="visible" :aliveTime="aliveTime" :score="score" :difficulty="difficulty"></game>
-		<infoPanel :infoPanel="infoPanel" :infoPanelText="infoPanelText"></infoPanel>
-		<settingPanel :visible="visible" :settingPanel="settingPanel" :dcList="dcList"></settingPanel>
-		<failedPanel :visible="visible" :failedPanel="failedPanel" :aliveTime="aliveTime" :score="score" :difficulty="difficulty"></failedPanel>
+		<infoPanel></infoPanel>
+		<settingPanel></settingPanel>
+		<failedPanel></failedPanel>
+		<div ref="a">
+			<div id="b"></div>
+		</div>
 	</div>
 </template>
 
 <script>
-	import game from './game.vue'
-	import allPanel from './panel/allPanel.vue'
+	import game from './game/game.vue'
 	import infoPanel from './panel/infoPanel.vue'
 	import failedPanel from './panel/failedPanel.vue'
 	import settingPanel from './panel/settingPanel.vue'
 	export default {
-		components: {failedPanel,settingPanel,infoPanel,game},
+		components: {failedPanel,settingPanel,game,infoPanel},
 		data() {
 			return {
-				version: "betaV0.4.6",	//版本信息
+				version: "betaV0.4.9",	//版本信息
+				date: "2021/1/3",		//编写时间
 				visible: true,			//显示开始面板/显示游戏
 				aliveTime: "0:0:0:0",	//存活时间
 				totalSeconds:0,
 				score: 0,				//分数
 				record:localStorage.getItem("record") ?? 0,//本地最高记录
-				inputVolume:80,			//音量
+				inputVolume:80,			//主音量
+				inputMusic:80,			//音乐
+				inputSound:80,			//音效
 				difficulty:"easy",		//难度
 				model:"run",			//运行模式
 				settingPanel:false,		//是否显示设置面板
 				failedPanel:false,		//是否显示失败面板
-				infoPanel:false,		//是否显示提示面板
-				infoPanelText:"未开发",	//提示面板默认信息
-				dcList:[				//难度按钮列表
-					{id:"dc1",text:"简单",value:"easy"},
-					{id:"dc2",text:"普通",value:"normal"},
-					{id:"dc3",text:"困难",value:"hard"},
-					{id:"dc4",text:"炼狱",value:"hell"},
-				],
+				infoPanel:false,		//是否显示信息面板
 			}
 		},
 		watch:{
-			inputVolume(nV,oV){
-				localStorage.setItem("volume",nV);
-				this.setVolume();
-			},
-			difficulty(nV,oV){
-				localStorage.setItem("difficulty",nV);
-			},
-			model(nV,oV){
-				localStorage.setItem("model",nV);
-			},
-		},
-		computed: {
-			volume: {
-				get() {
-					return this.inputVolume/100;
-				}
-			},
+			inputVolume(v){localStorage.setItem("mainVolume",v);this.setVolume();},
+			inputMusic(v){localStorage.setItem("musicVolume",v);this.setVolume();},
+			inputSound(v){localStorage.setItem("soundVolume",v);this.setVolume();},
+			difficulty(v){localStorage.setItem("difficulty",v);},
+			model(v){localStorage.setItem("model",v);},
 		},
 		created() { //页面加载完成之前(组件诞生)
 			document.addEventListener('keydown', this.keyDown);
@@ -85,65 +71,46 @@
 			click(e) { //面板点击
 				let c = e.target.classList;
 				if(c.contains("btn")){//音效
-					let click=document.getElementById("click");
-					click.volume=this.volume/4;
-					click.currentTime=0;
-					click.play();
+					this.play("click",0.25);
 				}
 				if (c.contains("start")) {//开始游戏
 					this.visible = false;
-				}
-				if (c.contains("shop")) {//商城
-					this.untapped();
-				}
-				if (c.contains("achievement")) {//成就
-					this.untapped();
-				}
-				if (c.contains("setting")) {//设置
-					this.settingPanel=!this.settingPanel;
 				}
 				if (c.contains("sound")) {//声音
 				let sound=document.getElementsByClassName("sound")[0];
 				let clicked=sound.classList.contains("clicked");
 					this.inputVolume = clicked?100:0;
 				}
-				if (c.contains("about")) {//关于
-					this.infoPanelText=`
-					<div style="line-height:1.5em;">
-					<p>作者: 古清平</p>
-					<p style="text-transform:capitalize">当前难度: ${this.difficulty}</p>
-					<p style="text-transform:capitalize">当前模式: ${this.model}</p>
-					<p style="text-transform:capitalize">游戏版本: ${this.version}</p>
-					<p>更新时间: 2020/12/10</p>
-					</div>
-					`;
-					this.infoPanel=true;
-				}
+				if (c.contains("setting")) this.set("settingPanel",true);//设置
+				if (c.contains("about")) this.set("infoPanel",true);//关于面板
+				if (c.contains("shop")) this.set("shopPanel",true);//商城面板
+				if (c.contains("achievement")) this.set("achievementPanel",true);//成就面板
 			},
-			keyDown(e) {
+			keyDown(e) {//键盘按下
 				if (e.code == "Space" && this.visible) this.visible = false;//开始游戏
 				if (e.code == "Enter" && !this.visible && this.failedPanel) this.playAgain();//重来
 				if (e.code == "Slash"){
 					this.model = this.model=="run"?"debug":"run";	
 				}
-			},
+			},	
 			hover(e){//按钮悬停音效
 				let c = e.target.classList;
 				if(c.contains("btn")){
-					document.getElementById("hover").currentTime=0;
-					document.getElementById("hover").play();
+					this.play("hover",1);
 				}
 			},
 			setVolume(){//设置音量
-				let sound=document.getElementsByClassName("sound")[0]
+				let sound=document.getElementsByClassName("sound")[0];
 				let clicked=sound.classList.contains("clicked");
 				let audio=sound.getElementsByTagName("audio");
-				if(this.volume==0&&!clicked) sound.classList.add("clicked");
-				if(this.volume>0&&clicked) sound.classList.remove("clicked");
-				for (var i = 0; i < audio.length; i++) {
-					audio[i].volume=this.volume;
+				if(this.volume/100==0&&!clicked) sound.classList.add("clicked");
+				if(this.volume/100>0&&clicked) sound.classList.remove("clicked");
+				for (let i of audio) {
+					i.volume=this.inputVolume/100;
+					if(i.classList.contains("music")) i.volume*=(this.inputMusic/100);
+					if(i.classList.contains("sound")) i.volume*=(this.inputSound/100);
 				}
-				document.getElementById("falled").volume=this.volume/3;
+				document.getElementById("falled").volume*=0.3;
 			},
 			playAgain(){//重玩
 				this.failedPanel=false;
@@ -153,13 +120,20 @@
 				},100)
 			},
 			getSetting(){//获取设置
-				this.inputVolume=localStorage.getItem("volume")??this.inputVolume;
+				this.inputVolume=localStorage.getItem("mainVolume")??this.inputVolume;
+				this.inputMusic=localStorage.getItem("musicVolume")??this.inputMusic;
+				this.inputSound=localStorage.getItem("soundVolume")??this.inputSound;
 				this.difficulty=localStorage.getItem("difficulty")??this.difficulty;
 				this.model=localStorage.getItem("model")??this.model;
 			},
-			untapped(){//未开发
-				this.infoPanelText=`未开发`;
-				this.infoPanel=true;
+			play(name,volume){//播放音频
+				let audio=document.getElementById(name);
+				audio.currentTime=0;
+				audio.play();
+			},
+			set(param,v){//设置
+				console.log(param+"="+v);
+				this[`${param}`] = v;
 			}
 		},
 	}

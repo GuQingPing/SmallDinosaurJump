@@ -21,9 +21,11 @@
 				style:"",//调整显示坐标
 				size: 5, //宽高
 				x: 10,y: 0, //坐标(百分比)
+				jumpSpeed:1,
 				jumping: false, //跳跃状态
 				jumpHeight:25,//跳跃最高-高度(百分比)
 				canJump: true, //可否跳跃(接触过地面则可再次跳跃)
+				falling:false,
 				move_left: false,//是否左移
 				move_right: false,//是否右移
 				checker: null,//保存定时器
@@ -45,13 +47,16 @@
 				if (e.code == "KeyW" | e.code == "ArrowUp" | e.code == "Space" &&this.canJump){//跳跃
 					this.jumping=true;
 					this.canJump=false;
-					document.getElementById("jump").play();
+					this.play("jump");
 				}
 				if (e.code == "KeyA" | e.code == "ArrowLeft") this.move_left = true;//左移
 				if (e.code == "KeyD" | e.code == "ArrowRight") this.move_right = true;//右移
+				if (e.code == "KeyS" | e.code == "ArrowDown"&this.y>0){
+					this.jumping=false;//取消跳跃
+					this.falling=true;//重坠
+				}
 			},
 			keyUp(e) {//监听键盘松开
-				if (e.code == "KeyW" | e.code == "ArrowUp" | e.code == "Space") this.jumping=false;
 				if (e.code == "KeyA" | e.code == "ArrowLeft") this.move_left = false;
 				if (e.code == "KeyD" | e.code == "ArrowRight") this.move_right = false;
 			},
@@ -60,8 +65,9 @@
 			//检查
 			check() {
 				//操作
-				if (this.move_left) this.move(-1);
-				if (this.move_right) this.move(1);
+				let movespeed=.4;
+				if (this.move_left) this.move(-movespeed);
+				if (this.move_right) this.move(movespeed);
 				if (this.jumping) this.jump();
 				if (!this.jumping&&!this.canJump) this.fall();
 				this.style=`left:${this.exactX}px;bottom:${this.exactY}px`;
@@ -81,13 +87,15 @@
 						clearInterval(this.checker);
 						let score=this.panel().score;
 						let heighest=localStorage.getItem("record")??0;
-						document.getElementById("failed").play();
+						this.play("failed",0.5);
 						if(score>heighest){
 							localStorage.setItem("record",score);
 							this.panel().record=this.panel().score;
 						}
+						this.cName="dead";
 						this.failed=true;
 						this.panel().failedPanel=true;
+						
 					}
 				}
 				//计秒
@@ -124,31 +132,32 @@
 					this.jumping=false;
 					return;
 				}
-				this.y += this.speedAmend(.7);
+				this.y += this.jumpSpeedAmend(this.jumpSpeed);
 				this.cName="jumping";
 				this.particles.length=0;
 			},
 			//下坠
 			fall() {
-				if (this.y-this.speedAmend(.7)<0 && !this.canJump) {
+				if (this.y-this.jumpSpeedAmend(this.jumpSpeed)<0 && !this.canJump) {
 					this.y=0;
 					this.cName="";
 					this.canJump=true;
-					document.getElementById("falled").play();
-					this.particles.push("1");
+					this.play("falled",4);
+					if(this.falling){
+						this.play("falled");
+						this.particles.push("1");
+					}
+					this.falling=false;
 					return;
 				}
-				this.y-= this.speedAmend(.7);
+				this.y-= this.jumpSpeedAmend(this.jumpSpeed);
+				if(this.falling) this.y-=this.jumpSpeed*1.2;
 			},
-			//速度修正
-			speedAmend(speed){
+			//升坠速度修正
+			jumpSpeedAmend(speed){
 				let difficulty=this.panel().difficulty;
-				//根据难度增减升坠速度
-				if(difficulty=="normal") speed*=1.2;
-				if(difficulty=="hard") speed*=1.3;
-				if(difficulty=="hell") speed*=1.4;
 				//加快起跳速度
-				if(this.y<this.jumpHeight*0.4) speed*=1.2;
+				if(this.y<this.jumpHeight*0.4) speed*=1.5;
 				//模拟惯性(越接近跳跃最高值，增减越慢)
 				if(Math.abs(this.y-this.jumpHeight)<=this.jumpHeight*0.4) speed*=0.9;
 				if(Math.abs(this.y-this.jumpHeight)<=this.jumpHeight*0.3) speed*=0.85;
@@ -156,18 +165,25 @@
 				if(Math.abs(this.y-this.jumpHeight)<=this.jumpHeight*0.1) speed*=0.75;
 				return speed;//返回最终速度
 			},
+			play(name,speed=1){
+				let audio=document.getElementById(name);
+				audio.rate=0;
+				audio.currentTime=0;
+				audio.playbackRate=speed;
+				audio.play();
+			},
 			//移动
-			move(num) {
-				let speed = 0.25;
-				if (num > 0 &&this.x < 95) this.x += speed;
-				if (num < 0 &&this.x > 1) this.x -= speed;
+			move(speed) {
+				if (speed > 0 &&this.x > 94) return;
+				if (speed < 0 &&this.x < 1) return;
+				this.x += speed;
 			},
 		},
 		destroyed() {
 			document.removeEventListener("keydown",this.keyDown);
 			document.removeEventListener("keyup",this.keyUp);
 			clearInterval(this.checker);
-		}
+		},
 	}
 </script>
 
@@ -184,9 +200,8 @@
 		filter: invert(100%);
 		animation:fade reverse 1s both,walk .8s infinite;
 		z-index: 1;
-		&.jumping {
-			animation:fade 1s;
-		}
+		&.jumping {animation:fade 1s;}
+		&.dead{animation: fade 1s,dead 2s both;}
 		&::before {//眼睛
 			content: '';
 			width: 5%;
@@ -208,7 +223,7 @@
 			width: 100%;height: 100%;
 			@particleColor:rgba(226, 226, 226, 0.3);
 			@particleSize:30px;
-			animation:falled 1s ease-out both;
+			animation:falled .7s ease-out both;
 			background-image: radial-gradient(circle,@particleColor 20%, transparent 30%),
 							  radial-gradient(circle,@particleColor 20%, transparent 30%),
 							  radial-gradient(circle,@particleColor 20%, transparent 30%),
@@ -243,7 +258,7 @@
 			background-repeat: no-repeat;
 		}
 	}
-	@keyframes falled{
+	@keyframes falled{//落地粒子动画
 		0%{
 			background-position:30% 150%;
 		}
@@ -314,7 +329,7 @@
 								80% 0%;
 		}
 	}
-	@keyframes walk {
+	@keyframes walk {//走路动画
 		@n: 1.02; //缩放比例
 		0% {background-image: url(../../assets/img/d1.png)}
 		25% {background-image: url(../../assets/img/d1.png)}
@@ -324,5 +339,19 @@
 		75% {background-image: url(../../assets/img/d3.png);transform: scale(1, @n)}
 		75.1% {background-image: url(../../assets/img/d4.png)}
 		100% {background-image: url(../../assets/img/d4.png)}
+	}
+	@keyframes dead{//死亡动画
+		0%{
+			transform-origin: bottom;
+			transform: scale(1,1);
+		}
+		90%{
+			transform: scale(1,0);
+		}
+		100%{
+			transform-origin: bottom;
+			transform: scale(1,0);
+			bottom: 40.5%;
+		}
 	}
 </style>

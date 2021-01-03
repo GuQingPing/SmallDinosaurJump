@@ -1,6 +1,6 @@
 <template>
 	<div id="app">
-		<panel></panel>
+		<startUI></startUI>
 		<div class="loading" :style="loadStyle">
 			<div class="myicon">
 				<div class="myicon-item item1"></div>
@@ -14,11 +14,11 @@
 </template>
 
 <script>
-	import panel from './components/panel.vue'
+	import startUI from './components/startUI.vue'
 	export default {
 		name: 'App',
 		components: {
-			panel
+			startUI
 		},
 		data(){
 			return{
