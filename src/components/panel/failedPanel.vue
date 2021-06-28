@@ -1,10 +1,12 @@
 <template>
-	<panel type="0" :show="this.$parent.failedPanel" class="failedPanel" :close="close">
+	<panel type="0" :show="panel.failedPanel" class="failedPanel" :close="close">
 		<p>你碰到刺了!!!</p>
-		<p>存活时间: {{this.$parent.aliveTime}}</p>
-		<p>最终分数: {{this.$parent.score}}</p>
-		<p>历史最高分:{{this.$parent.record}}</p>
-		<p style="text-transform: capitalize;">难度: {{this.$parent.difficulty}}</p>
+		<p>存活时间: {{panel.aliveTime}}</p>
+		<p>存活得分: {{panel.score-game.eatGolds*10}}({{Math.ceil(game.ms/100)}}x{{parseInt(1+(game.s/20))}}x{{game.difficultyScoreAmend}})</p>
+		<p>金币得分:{{game.eatGolds*10}}({{game.eatGolds}}x10)</p>
+		<p>最终分数: {{panel.score}}</p>
+		<p>历史最高分:{{panel.record}}</p>
+		<p style="text-transform: capitalize;">难度: {{panel.difficulty}}</p>
 		<div class="btnBox">
 			<div @click="back" class="btn back">返回主菜单</div>
 			<div @click="close" class="btn close">关闭</div>
@@ -17,9 +19,15 @@
 	import panel from './basicPanel.vue'
 	export default {
 		components:{panel},
+		data(){
+			return{
+				panel:this.$parent,
+				game:this.$parent.get("game"),
+			}
+		},
 		methods:{
 			playAgain(){this.$parent.playAgain()},
-			back(){this.$parent.visible=true;this.$parent.failedPanel=false},
+			back(){this.$parent.visible=true;this.$parent.autoBack();},
 			close(){this.$parent.set("failedPanel",false)},
 		}
 	}

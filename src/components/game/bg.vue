@@ -5,7 +5,6 @@
 	</div>
 </template>
 <script>
-	import cactus from './cactus.vue'
 	export default {
 		name:'bg',
 		created() {//初始化-生成山脉
@@ -29,6 +28,7 @@
 		data() {
 			return {
 				mStyles: new Array(),
+				cache:null,
 			}
 		},
 		methods:{
@@ -43,10 +43,11 @@
 	#bg{
 		width: 100%;height: 100%;
 		position: fixed;
-		background:linear-gradient(to bottom,#91bef8,#c4d1e1) center repeat;
+		background:#91bef8;
 		background-size: cover;
 		width: 100%;height: 100%;
 		left: 0;top: 0;
+		transition: .5s;
 	}
 	@ground:40%;
 	#ground {
@@ -55,6 +56,7 @@
 		width: 100%;height: 40vh;
 		background: linear-gradient(to bottom, #3a536b, #151e27);
 		border: 0.3vh solid #000;
+		transition: .5s;
 	}
 	.mountains{
 		position: absolute;
@@ -65,17 +67,24 @@
 			display: none;
 			position: absolute;
 			bottom: -1%;left: 0;
-			display: inline-block;
 			background: rgb(56, 80, 103);
-			animation: bgMove 15s infinite linear both;
+			height: 0;
 		}
 	}
-	@keyframes scale {
-		0% {transform: scale(1, 0);}
-		100% {transform: scale(1, 1);}
+	#bg.running span{display: inline-block; animation: bgMove 15s infinite linear both,bgShow 1s both;}
+	#bg.paused span{display: none;}
+	#bg.paused{
+		background: #c4d1e1;
+		#ground {
+			background: #000;
+		}
 	}
 	@keyframes bgMove{
-		0% {transform: translate(100vw,0);}
-		100% {transform: translate(-200vw,0);}
+		from{transform: translate(100vw,0);}
+		to{transform: translate(-200vw,0);}
+	}
+	@keyframes bgShow{
+		from{height: 0%;}
+		to{height: 100%;}
 	}
 </style>

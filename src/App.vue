@@ -45,16 +45,18 @@
 	.loading {
 		@bg:#313131;
 		@color:#e5e5e5;
+		color: @color;
 		width: 100%;
 		height: 100%;
 		position: fixed;
 		top: 0;
 		left: 0;
 		background: @bg;
+		z-index: 10;
 		.myicon {
 			@size:3;
 			width: @size*50px;
-			height: @size*30px;
+			height: @size*40px;
 			position: absolute;
 			top: 0;left: 0;bottom: 0;right: 0;
 			margin: auto;
@@ -74,7 +76,7 @@
 		}
 	}
 	@keyframes myicon {
-		0% 100% {transform: scaleY(1)}
+		0% 100%{transform: scaleY(1)}
 		50% {transform: scaleY(3)}
 	}
 	@keyframes fade{
@@ -83,7 +85,17 @@
 		100%{opacity: 0;visibility: hidden;}
 	}
 	@keyframes scale{
-		0%{transform: scale(1);}
-		100%{transform: scale(0);visibility: hidden;}
+		from{transform: scale(1);}
+		to{transform: scale(0);visibility: hidden;}
+	}
+	@keyframes topIn{
+		0%{top: 100%;opacity: 0;}
+		25%{top: 10%;opacity: 1;}
+		75%{top: 10%;opacity: 1;}
+		100%{top: -50%;opacity: 0;}
+	}
+	@keyframes radius{
+		from{border-radius: 50%;}
+		to{border-radius: 15px;}
 	}
 </style>

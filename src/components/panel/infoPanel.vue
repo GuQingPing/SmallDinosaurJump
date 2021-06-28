@@ -5,6 +5,7 @@
 		<p>难度:{{this.$parent.difficulty}}</p>
 		<p>模式:{{this.$parent.model}}</p>
 		<p>更新时间:{{this.$parent.date}}</p>
+		<p>联系QQ:2846913281</p>
 	</panel>
 </template>
 
